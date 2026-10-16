@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "cancion": "Hey Ma How You",
+    "artista": "RA unsKrypted",
+    "tiempo": "3:43",
+    "segundos": 223,
+    "caratula": "ListaMusica/caratulas/001.jpg",
+    "archivo": "ListaMusica/001-2244068-RA unsKrypted-Hey Ma How You.mp3"
+  },
+  {
+    "id": 2,
+    "cancion": "Bad",
+    "artista": "S.C. Chris",
+    "tiempo": "3:37",
+    "segundos": 217,
+    "caratula": "ListaMusica/caratulas/004.jpg",
+    "archivo": "ListaMusica/004-2244088-S.C. Chris-Bad.mp3"
+  },
+  {
+    "id": 3,
+    "cancion": "Kentix - Ça Rend Heureux",
+    "artista": "Kentix",
+    "tiempo": "2:22",
+    "segundos": 142,
+    "caratula": "ListaMusica/caratulas/005.jpg",
+    "archivo": "ListaMusica/005-2207760-Kentix-Kentix - C_a Rend Heureux.mp3"
+  },
+  {
+    "id": 4,
+    "cancion": "JORDAN 23 - PUETO PA LO MIO RECORDS Presenta",
+    "artista": "PUETO PA LO MIO RECORDS",
+    "tiempo": "2:50",
+    "segundos": 170,
+    "caratula": "ListaMusica/caratulas/006.jpg",
+    "archivo": "ListaMusica/006-2155784-PUETO PA LO MIO RECORDS-JORDAN 23 - PUETO PA LO MIO RECORDS Presenta.mp3"
+  },
+  {
+    "id": 5,
+    "cancion": "Easy Work ft. Maya Miko",
+    "artista": "Dreadpool",
+    "tiempo": "3:11",
+    "segundos": 191,
+    "caratula": "ListaMusica/caratulas/008.jpg",
+    "archivo": "ListaMusica/008-2041854-Dreadpool-Easy Work ft. Maya Miko.mp3"
+  },
+  {
+    "id": 6,
+    "cancion": "Make a level",
+    "artista": "Boulvard X-Audi",
+    "tiempo": "3:20",
+    "segundos": 200,
+    "caratula": "ListaMusica/caratulas/009.jpg",
+    "archivo": "ListaMusica/009-2026422-Boulvard X-Audi-Make a level.mp3"
+  },
+  {
+    "id": 7,
+    "cancion": "Sur la Lune",
+    "artista": "Kentix",
+    "tiempo": "4:13",
+    "segundos": 253,
+    "caratula": "ListaMusica/caratulas/010.jpg",
+    "archivo": "ListaMusica/010-2020849-Kentix-Sur la Lune.mp3"
+  },
+  {
+    "id": 8,
+    "cancion": "FROSTiE - G-CODE",
+    "artista": "FROSTiE",
+    "tiempo": "3:37",
+    "segundos": 217,
+    "caratula": "ListaMusica/caratulas/012.jpg",
+    "archivo": "ListaMusica/012-1940158-FROSTiE-FROSTiE - G-CODE.mp3"
+  }
+]
