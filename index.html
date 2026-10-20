@@ -76,10 +76,10 @@
           <div class="glass panel now-playing-panel">
             <span class="panel-eyebrow">Sonando ahora</span>
             <div class="now-playing-body">
-              <div class="now-cover"></div>
+              <img id="nowPlayingCover" class="now-cover" alt="Carátula de la canción">
               <div>
-                <h3 class="now-title">Carefree</h3>
-                <p class="now-artist">Kevin MacLeod</p>
+                <h3 id="nowTitle" class="now-title">Carefree</h3>
+                <p id="nowArtist" class="now-artist">Kevin MacLeod</p>
                 <span class="now-tag">Folk</span>
               </div>
             </div>
@@ -91,9 +91,7 @@
               <span class="panel-count">espectro en vivo</span>
             </div>
 
-            <div class="eq-bars" id="eqBars">
-              <!-- Las barras se generarán por JS en el siguiente paso -->
-            </div>
+            <div class="eq-bars" id="eqBars" role="img" aria-label="Visualización del espectro de audio"></div>
           </div>
 
         </div>
@@ -107,10 +105,10 @@
     <div class="player-bar-inner">
 
       <div class="player-track-info">
-        <div class="now-cover now-cover-sm"></div>
+        <img id="playerCover" class="now-cover now-cover-sm" alt="Carátula de la canción">
         <div>
           <span id="songName" class="now-title-sm">Carefree</span>
-          <span class="now-artist-sm">Kevin MacLeod</span>
+          <span id="artistName" class="now-artist-sm">Kevin MacLeod</span>
         </div>
       </div>
 

@@ -1,5 +1,81 @@
 let listaCanciones = []; // Variable global para almacenar la lista de canciones
 let indiceActual = 0; // Variable global para almacenar el índice de la canción actual
+const cantidadBarrasEcualizador = 32;
+const barrasEcualizador = [];
+let analizadorEcualizador = null;
+let datosFrecuenciaEcualizador = null;
+let animacionEcualizador = null;
+
+function crearBarrasEcualizador() {
+    const contenedor = document.getElementById("eqBars");
+
+    for (let indice = 0; indice < cantidadBarrasEcualizador; indice++) {
+        const barra = document.createElement("span");
+        barra.setAttribute("aria-hidden", "true");
+        barra.style.height = "3px";
+        contenedor.appendChild(barra);
+        barrasEcualizador.push(barra);
+    }
+}
+
+function prepararAnalizadorEcualizador() {
+    if (analizadorEcualizador) {
+        return true;
+    }
+
+    if (!Howler.usingWebAudio || !Howler.ctx || !Howler.masterGain) {
+        console.error("El ecualizador necesita la reproducción Web Audio de Howler.");
+        return false;
+    }
+
+    const contexto = Howler.ctx;
+    analizadorEcualizador = contexto.createAnalyser();
+    analizadorEcualizador.fftSize = 128;
+    analizadorEcualizador.smoothingTimeConstant = 0.78;
+    datosFrecuenciaEcualizador = new Uint8Array(analizadorEcualizador.frequencyBinCount);
+
+    const salidaSilenciosa = contexto.createGain();
+    salidaSilenciosa.gain.value = 0;
+    Howler.masterGain.connect(analizadorEcualizador);
+    analizadorEcualizador.connect(salidaSilenciosa);
+    salidaSilenciosa.connect(contexto.destination);
+
+    return true;
+}
+
+function actualizarEcualizador() {
+    analizadorEcualizador.getByteFrequencyData(datosFrecuenciaEcualizador);
+
+    barrasEcualizador.forEach((barra, indice) => {
+        const proporcion = indice / cantidadBarrasEcualizador;
+        const frecuencia = Math.floor(Math.pow(proporcion, 1.7) * (datosFrecuenciaEcualizador.length - 1));
+        const altura = Math.max(3, Math.round((datosFrecuenciaEcualizador[frecuencia] / 255) * 100));
+        barra.style.height = `${altura}%`;
+    });
+
+    animacionEcualizador = requestAnimationFrame(actualizarEcualizador);
+}
+
+function iniciarEcualizador() {
+    if (!prepararAnalizadorEcualizador() || animacionEcualizador !== null) {
+        return;
+    }
+
+    animacionEcualizador = requestAnimationFrame(actualizarEcualizador);
+}
+
+function detenerEcualizador() {
+    if (animacionEcualizador !== null) {
+        cancelAnimationFrame(animacionEcualizador);
+        animacionEcualizador = null;
+    }
+
+    barrasEcualizador.forEach(barra => {
+        barra.style.height = "3px";
+    });
+}
+
+crearBarrasEcualizador();
 
 // Creamos una función para cargar las canciones del archivo JSON
 function cargarCanciones() {
@@ -64,9 +140,14 @@ function reproducir(indice, elemento){
 
 
     //Intento acceder a una canción de la lista de canciones usando el índice proporcionado. Si el índice es válido, se obtiene la canción correspondiente y se crea un objeto Howl para reproducirla. Luego, se reproduce la canción y se actualiza el nombre de la canción en el HTML.
-    const indiceActual = indice; // Actualizamos el índice actual con el índice de la canción que se ha clicado
-    const cancion = listaCanciones[indice];
-    const audio = new Howl({ src: [cancion.archivo] });
+    indiceActual = indice;    const cancion = listaCanciones[indice];
+    const audio = new Howl({
+        src: [cancion.archivo],
+        onplay: iniciarEcualizador,
+        onpause: detenerEcualizador,
+        onstop: detenerEcualizador,
+        onend: finalizarCancion
+    });
 
     if (cancionActual !== null) {
         cancionActual.stop(); // Detenemos la canción actual si hay una reproduciéndose
@@ -76,8 +157,19 @@ function reproducir(indice, elemento){
     audio.play(); // Reproducimos la canción actual
 
     songName = document.getElementById("songName");
+    artistName = document.getElementById("artistName");
+    playerCover = document.getElementById("playerCover");
+    playerCover.src = cancion.caratula; // Actualizamos la carátula de la canción en el HTML
     songName.textContent = cancion.cancion; // Actualizamos el nombre de la canción en el HTML
+    artistName.textContent = cancion.artista; // Actualizamos el nombre del artista en el HTML
 
+
+    nowPlayingCover = document.getElementById("nowPlayingCover");
+    nowPlayingCover.src = cancion.caratula;
+    nowTitle = document.getElementById("nowTitle");
+    nowTitle.textContent = cancion.cancion;
+    nowArtist = document.getElementById("nowArtist");
+    nowArtist.textContent = cancion.artista;
 }
 
 
@@ -112,9 +204,82 @@ function reanudarParar() {
 const btnPlayPause = document.getElementById("playBtn");
 btnPlayPause.addEventListener("click", reanudarParar); // Añadimos un evento click al botón de play/pausa
 
+// Función que se ejecuta cuando termina una canción
+function finalizarCancion() {
+    detenerEcualizador();
+
+    if (repetir) {
+        reproducir(indiceActual, document.querySelector(`.track-item[data-id="${listaCanciones[indiceActual].id}"]`)); // Si el modo repetir está activo, volvemos a reproducir la misma canción
+    }
+}
+
+// Función para convertir los segundos en formato "minutos:segundos"
+function formatearTiempo(segundos) {
+    const minutos = Math.floor(segundos / 60);
+    const resto = Math.floor(segundos % 60);
+    return `${minutos}:${resto < 10 ? "0" : ""}${resto}`;
+}
+
+// Cada medio segundo actualizamos la barra de progreso y los tiempos
+function actualizarProgreso() {
+    if (cancionActual === null || !cancionActual.playing()) {
+        return; // Si no hay canción sonando, no hacemos nada
+    }
+
+    const duracion = cancionActual.duration();
+    const posicion = cancionActual.seek();
+
+    progressRange.value = (posicion / duracion) * 100;
+    timeCurrent.textContent = formatearTiempo(posicion);
+    timeTotal.textContent = formatearTiempo(duracion);
+}
+
+const progressRange = document.getElementById("progressRange");
+const timeCurrent = document.getElementById("timeCurrent");
+const timeTotal = document.getElementById("timeTotal");
+setInterval(actualizarProgreso, 500);
+
+// Al mover la barra de progreso, adelantamos o atrasamos la canción
+progressRange.addEventListener("input", () => {
+    if (cancionActual === null) {
+        return; // Si no hay canción actual, no hacemos nada
+    }
+
+    cancionActual.seek((progressRange.value / 100) * cancionActual.duration());
+    actualizarProgreso();
+});
+
+const volumeRange = document.getElementById("volumeRange");
+const volumeValue = document.getElementById("volumeValue");
+Howler.volume(volumeRange.value / 100); // Aplicamos el volumen inicial del HTML
+
+// Al mover la barra de volumen, ajustamos el volumen de todas las canciones
+volumeRange.addEventListener("input", () => {
+    Howler.volume(volumeRange.value / 100);
+    volumeValue.textContent = `${volumeRange.value}%`;
+});
+
+// Variables globales para los modos aleatorio y repetir
+let aleatorio = false;
+let repetir = false;
+
+const btnAleatorio = document.getElementById("shuffleBtn");
+btnAleatorio.addEventListener("click", () => {
+    aleatorio = !aleatorio; // Activamos o desactivamos el modo aleatorio
+    btnAleatorio.classList.toggle("is-active", aleatorio);
+});
+
+const btnRepetir = document.getElementById("repeatBtn");
+btnRepetir.addEventListener("click", () => {
+    repetir = !repetir; // Activamos o desactivamos el modo repetir
+    btnRepetir.classList.toggle("is-active", repetir);
+});
+
 const nextSong = document.getElementById("nextBtn");
 nextSong.addEventListener("click", () => {
-    if (indiceActual < listaCanciones.length - 1) {
+    if (aleatorio) {
+        indiceActual = Math.floor(Math.random() * listaCanciones.length); // Si el modo aleatorio está activo, elegimos una canción al azar
+    } else if (indiceActual < listaCanciones.length - 1) {
         indiceActual++;
     }
     reproducir(indiceActual, document.querySelector(`.track-item[data-id="${listaCanciones[indiceActual].id}"]`));
